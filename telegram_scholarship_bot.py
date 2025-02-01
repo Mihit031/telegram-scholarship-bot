@@ -1,6 +1,7 @@
 import asyncio
 import time
 import re
+import json
 import os
 from telethon import TelegramClient
 import gspread
@@ -19,15 +20,19 @@ CHANNEL_USERNAME = "fullyfundedscholarshipsorg"  # Replace with your target chan
 client = TelegramClient("anon", API_ID, API_HASH)
 
 # Google Sheets setup
-GOOGLE_SHEETS_CREDENTIALS = "/content/scholarship-449518-4eb0e3383b72.json"  # Ensure this file is uploaded
-GOOGLE_SHEETS_NAME = "Scholarship Data"  # Name of your Google Sheet
+GOOGLE_SHEETS_CREDENTIALS_JSON = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+if GOOGLE_SHEETS_CREDENTIALS_JSON:
+    credentials_dict = json.loads(GOOGLE_SHEETS_CREDENTIALS_JSON)
+else:
+    raise ValueError("Google Sheets credentials are missing!")
 
-# Authenticate Google Sheets
+# Define Google Sheets credentials and client
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_SHEETS_CREDENTIALS, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
 client_gsheets = gspread.authorize(creds)
 
 # Open the Google Sheet
+GOOGLE_SHEETS_NAME = "Scholarship Data"  # Replace with your Google Sheet's name
 sheet = client_gsheets.open(GOOGLE_SHEETS_NAME).sheet1
 
 # Function to extract structured data from a message
